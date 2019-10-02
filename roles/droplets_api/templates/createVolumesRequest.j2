@@ -1,0 +1,14 @@
+{% set testing = [] %}
+createVolumesRequest:
+{% for item in createDropletsVars %}
+{% set dummy = testing.append(item) %}
+{% set tagCounter = testing|selectattr('tag', 'equalto', item.tag) | list | length %}
+- '{
+  "size_gigabytes": {{item.volume_gig}},
+  "name": "{{item.tag}}data",
+  "description": "Volume for {{item.tag}}{{tagCounter}}",
+  "region": "{{ item.region }}",
+  "tags": ["{{ item.tag }}"],
+  "filesystem_type": "xfs"
+}'
+{% endfor %}

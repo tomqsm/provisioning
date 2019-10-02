@@ -1,0 +1,19 @@
+{% set testing = [] %}
+createDropletsRequest:
+{% for item in createDropletsVars %}
+{% set dummy = testing.append(item) %}
+{% set itemcounter = testing|selectattr('tag', 'equalto', item.tag) | list | length %}
+ - '{
+  "name": "{{ item.tag }}{{ itemcounter }}",
+  "region": "{{ item.region }}",
+  "size": "s-1vcpu-{{item.ram}}gb",
+  "image": "{{ item.image }}",
+  "ssh_keys": ["14:65:ba:d5:d0:92:b2:8e:55:70:0e:c5:2b:a3:7e:59"],
+  "backups": false,
+  "ipv6": true,
+  "user_data": null,
+  "private_networking": null,
+  "volumes": null,
+  "tags": ["{{ item.tag }}"]
+}'
+{% endfor %}

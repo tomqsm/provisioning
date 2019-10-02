@@ -1,0 +1,4 @@
+listVolumes:
+{% for volume in listVolumes.json.volumes %}
+ - { id:"{{ volume.id }}", tag:"{{volume.tags[0]}}" }
+{% endfor %}

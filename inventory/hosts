@@ -1,0 +1,19 @@
+[droplets]
+134.209.199.134 #zoo1
+142.93.173.75 #zoo2
+134.209.180.102 #zoo3
+165.22.205.178 #kafka1
+165.22.21.210 #kafka2
+104.248.163.47 #kafka3
+
+[dockers]
+172.17.0.1 ansible_connection=local
+
+[local]
+127.0.0.1
+
+[local:vars]
+ansible_connection=local
+
+[droplets:vars]
+ansible_connection=ssh

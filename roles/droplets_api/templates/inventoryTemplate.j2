@@ -1,0 +1,16 @@
+[droplets]
+{% for droplet in listDroplets %}
+{{ droplet.ip }} #{{droplet.name}}
+{% endfor %}
+
+[dockers]
+172.17.0.1 ansible_connection=local
+
+[local]
+127.0.0.1
+
+[local:vars]
+ansible_connection=local
+
+[droplets:vars]
+ansible_connection=ssh

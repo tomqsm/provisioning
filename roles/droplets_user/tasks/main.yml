@@ -1,0 +1,47 @@
+- name: Update repositories cache and install package
+  apt:
+    update_cache: yes
+    name: "python-pip"
+    state: latest
+  become: yes
+
+
+- name: Install latest python-pip
+  apt:
+    name: python-pip
+    state: latest
+  become: yes
+
+- name: Pip install docker-compose
+  pip:
+    name:
+      - docker
+      - requests>=2.20.1
+      - docker-compose
+  become: yes
+
+- name: zookeeper_docker_compose
+  template:
+    src: zookeeper_docker_template.j2
+    dest: "docker-compose.yml"
+  when: "ansible_default_ipv4.address == item.ip and (item.tags[0] == 'zoo')"
+  loop: "{{ listDroplets }}"
+
+- name: kafka_docker_compose
+  template:
+    src: kafka_docker_template.j2
+    dest: "docker-compose.yml"
+  when: "ansible_default_ipv4.address == item.ip and (item.tags[0] == 'kafka')"
+  loop: "{{ listDroplets }}"
+
+# - name: Docker compose down
+#   docker_compose:
+#     project_src: "~"
+#     state: absent
+#   tags:
+#     - down  
+
+- name: Docker compose up
+  docker_compose:
+    project_src: "~"
+    state: present

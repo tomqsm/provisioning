@@ -1,0 +1,4 @@
+listVolumes:
+{% for volume in listVolumesResponse.json.volumes %}
+ - { id: "{{ volume.id }}", tags: [{{ volume.tags | list | join (',') }}], region: "{{ volume.region.slug }}" }
+{% endfor %}

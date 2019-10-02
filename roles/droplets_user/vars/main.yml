@@ -1,0 +1,4 @@
+# python_version: 3.5
+vars: 
+ - ip: "{{ hostvars['hostname'][ansible_default_ipv4][address] }}"
+ - hostname: "{{ hostvars['hostname'][ansible_hostname] }}"

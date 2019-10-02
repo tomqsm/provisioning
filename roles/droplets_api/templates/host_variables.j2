@@ -1,0 +1,7 @@
+{% set password = range(10000, 999999) | random | to_uuid %}
+
+user: {{ password[:+6] }}
+
+ansible_become_pass: {{password}}
+
+ansible_become_pass_hash: {{ password | password_hash('sha256', '1574') }}

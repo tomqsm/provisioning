@@ -1,0 +1,4 @@
+listDroplets:
+{% for droplet in listDropletsResponse.json.droplets %}
+ - { id: "{{ droplet.id }}", tags: [{{ droplet.tags | list | join (',') }}], status: "{{ droplet.status }}", ip: "{{droplet.networks.v4[0].ip_address}}", region: "{{ droplet.region.slug }}", name: "{{ droplet.name }}", myid: {{ droplet.name[-1:] }} }
+{% endfor %}

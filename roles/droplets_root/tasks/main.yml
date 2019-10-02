@@ -1,0 +1,45 @@
+- name: Set timezone to Europe/Warsaw
+  timezone:
+    name: Europe/Warsaw
+
+- name: Create a user
+  user:
+    name: '{{ user }}'
+    password: '{{ ansible_become_pass_hash }}'
+    groups:
+      - docker
+      - sudo
+    state: present
+    shell: /bin/bash
+    system: no
+    createhome: yes
+    home: /home/{{ user }}
+
+- name: Set authorized key taken from file
+  authorized_key:
+    user: '{{ user }}'
+    state: present
+    key: "{{ lookup('file', ansible_ssh_private_key_file) }}" # from group_vars
+
+- name: set ssh permitRootLoginNo
+  replace:
+    path: /etc/ssh/sshd_config
+    regexp: '^PermitRootLogin yes'
+    replace: 'PermitRootLogin no'
+  register: permitRootLoginChanged
+
+- debug: msg="set ssh permitRootLoginChanged {{permitRootLoginChanged}}"
+
+- name: set PasswordAuthentication no
+  replace:
+    path: /etc/ssh/sshd_config
+    regexp: '^PasswordAuthentication yes'
+    replace: 'PasswordAuthentication no'
+  register: passwordAuthenticationChanged
+
+- debug: msg="set ssh passwordAuthenticationChanged {{passwordAuthenticationChanged}}"
+
+- name: restart ssh if permitRootLoginChanged changed
+  service: name=ssh state=restarted
+  # when: permitRootLoginChanged.changed == True or passwordAuthenticationChanged.changed == True
+### HOST VARIABLES

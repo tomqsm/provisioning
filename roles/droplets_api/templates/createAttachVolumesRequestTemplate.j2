@@ -1,0 +1,8 @@
+attachVolumeRequests:
+{% for volume in listVolumes %}
+{% for droplet in listDroplets %}
+{% if (volume.region == droplet.region and ((droplet.tags is defined) and (volume.tags is defined)) and (droplet.tags and volume.tags) and (droplet.tags[0] == volume.tags[0])) %}
+ - { request: '{"type": "attach", "droplet_id": "{{ droplet.id }}", "region": "{{ droplet.region }}", "tags": ["{{droplet.tags[0]}}"]}', volumeId: "{{ volume.id }}" }
+{% endif %}
+{% endfor %}
+{% endfor %}

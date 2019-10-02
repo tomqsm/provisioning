@@ -1,0 +1,383 @@
+### ansible-playbook droplets_api.yml --tags createDropletsRequest,createDroplets,listDroplets,createVolumesRequest,createVolumes,listVolumes,createAttachVolumesRequest,attachVolumes,update_inventory,host_variables --list-tasks --vault-password-file pass
+
+
+### CREATE DROPLETS REQUEST
+
+  - debug: msg="createDropletsVars = {{ createDropletsVars }}" # refer to ../var/main.yml to set this variable in there
+    tags:
+      - createDropletsRequest
+
+  - name: createDropletsRequest
+    template:
+      src: createDropletsRequest.j2
+      dest: fromtemplate/createDropletsRequest.yml
+    tags:
+      - createDropletsRequest
+
+
+### CREATE DROPLETS
+
+  - include_vars: fromtemplate/createDropletsRequest.yml
+    tags:
+      - createDroplets
+
+  - name: createDroplets
+    uri:
+      url: https://api.digitalocean.com/v2/droplets
+      method: POST
+      body: "{{ item }}"
+      status_code: 202
+      return_content: yes
+      body_format: json
+      headers:
+        Content-Type: application/json
+        Authorization: "Bearer {{ digitaloceantoken }}"
+    register: createDropletsResponse
+    loop: "{{ createDropletsRequest }}"
+    tags:
+      - createDroplets
+  
+  - debug: msg="createDropletsResponse = {{ createDropletsResponse }}"
+    tags:
+      - createDroplets
+
+### LIST DROPLETS
+
+  - name: listDroplets
+    uri:
+      url: https://api.digitalocean.com/v2/droplets
+      method: GET
+      status_code: 200
+      return_content: yes
+      body_format: json
+      headers:
+        Content-Type: application/json
+        Authorization: "Bearer {{ digitaloceantoken }}"
+    register: listDropletsResponse
+    tags:
+      - listDroplets
+      - listAll
+      - power_on
+      - power_off
+
+  - name: generate listDroplets.yml
+    template:
+      src: listDropletsResponseTemplate.j2
+      dest: fromtemplate/listDroplets.yml
+    tags:
+      - listDroplets
+      - listAll
+      - power_on
+      - power_off
+
+  - include_vars: fromtemplate/listDroplets.yml
+    tags:
+      - listDroplets
+      - power_on
+
+  - debug: msg="listDroplets = {{ listDroplets | to_nice_json }}"
+    tags:
+      - listDroplets
+
+  - debug: msg="listDropletsResponse.json = {{ listDropletsResponse.json }}"
+    tags:
+      - listDroplets
+
+
+### POWER_ON      
+
+  - name: power_on
+    uri:
+      url: https://api.digitalocean.com/v2/droplets/{{ item.id }}/actions
+      method: POST
+      body: '{"type": "power_on"}'
+      status_code: 201
+      return_content: yes
+      body_format: json
+      headers:
+        Content-Type: application/json
+        Authorization: "Bearer {{ digitaloceantoken }}"
+    register: power_on_response
+    when: "item.status == 'off'"
+    loop: "{{ listDroplets }}"
+    tags:
+      - power_on
+
+  - debug: msg="power_on_response = {{ power_on_response }}"
+    tags:
+      - power_on
+
+### POWER_OFF
+  - include_vars: fromtemplate/listDroplets.yml
+    tags:
+      - power_off
+
+  - name: power_off
+    uri:
+      url: https://api.digitalocean.com/v2/droplets/{{ item.id }}/actions
+      method: POST
+      body: '{"type": "power_off"}'
+      status_code: 201
+      return_content: yes
+      body_format: json
+      headers:
+        Content-Type: application/json
+        Authorization: "Bearer {{ digitaloceantoken }}"
+    register: power_off_response
+    when: "item.status == 'active'"
+    loop: "{{ listDroplets }}"
+    tags:
+      - power_off
+
+  - debug: msg="power_off_response = {{ power_off_response }}"
+    tags:
+      - power_off
+
+
+
+### DELETE DROPLETS
+
+  - include_vars: fromtemplate/listDroplets.yml
+    tags:
+      - deleteDroplets
+      - deleteAll
+
+  - name: deleteDroplets
+    uri:
+      url: https://api.digitalocean.com/v2/droplets/{{ item.id }}
+      method: DELETE
+      status_code: 204
+      headers:
+        Content-Type: application/json
+        Authorization: "Bearer {{ digitaloceantoken }}"
+    loop: "{{ listDroplets }}"
+    tags:
+      - deleteDroplets
+      - deleteAll
+
+### ADD HOSTS to INVENTORY inmemory ansible inventory
+
+  - include_vars: fromtemplate/listDroplets.yml
+    tags:
+      - add_host
+  
+  - name: Add a host alias that we reach through a tunnel (Ansible 1.9 and older)
+    add_host:
+      hostname: '{{ item.ip }}'
+      groups: 
+        - droplets
+    loop: "{{ listDroplets }}"
+    tags:
+      - add_host
+
+
+### VOLUMES ansible-playbook droplets_api.yml --tags createVolumesRequest,createVolumes --vault-password-file pass
+
+
+  - name: createVolumesRequest
+    template:
+      src: createVolumesRequest.j2
+      dest: fromtemplate/createVolumesRequest.yml
+    tags:
+      - createVolumesRequest
+
+  - include_vars: fromtemplate/createVolumesRequest.yml
+    tags:
+      - createVolumesRequest
+      - createVolumes
+
+  - name: createVolumes
+    uri:
+      url: https://api.digitalocean.com/v2/volumes
+      method: POST
+      body: "{{ item }}"
+      status_code: 201
+      return_content: yes
+      body_format: json
+      headers:
+        Content-Type: application/json
+        Authorization: "Bearer {{ digitaloceantoken }}"
+    register: createVolumesResponse
+    loop: "{{ createVolumesRequest }}"
+    tags:
+      - createVolumes
+
+      
+### LIST VOLUMES
+
+  - name: listVolumes
+    uri:
+      url: https://api.digitalocean.com/v2/volumes
+      method: GET
+      status_code: 200
+      return_content: yes
+      body_format: json
+      headers:
+        Content-Type: application/json
+        Authorization: "Bearer {{ digitaloceantoken }}"
+    register: listVolumesResponse
+    tags:
+      - listVolumes
+      - listAll
+
+  - debug: msg="listVolumesResponse = {{ listVolumesResponse.json }}"
+    tags:
+      - listVolumes
+
+  - name: generate listVolumes.yml
+    template:
+      src: listVolumes.j2
+      dest: fromtemplate/listVolumes.yml
+    tags:
+      - listVolumes
+      - listAll
+
+
+### ATACH VOLUME REQUEST createAttachVolumesRequest
+
+  - include_vars: fromtemplate/listVolumes.yml
+    tags:
+      - createAttachVolumesRequest
+
+  - include_vars: fromtemplate/listDroplets.yml
+    tags:
+      - createAttachVolumesRequest
+
+  - name: createAttachVolumesRequest
+    template:
+      src: createAttachVolumesRequestTemplate.j2
+      dest: fromtemplate/attachVolumesRequest.yml
+    tags:
+      - createAttachVolumesRequest  
+
+### ATACH VOLUME
+
+  - include_vars: fromtemplate/attachVolumesRequest.yml
+    tags:
+      - attachVolumes
+
+  - name: attachVolumes
+    uri:
+      url: https://api.digitalocean.com/v2/volumes/{{ item.volumeId }}/actions
+      method: POST
+      body: "{{ item.request }}"
+      status_code: 202
+      return_content: yes
+      body_format: json
+      headers:
+        Content-Type: application/json
+        Authorization: "Bearer {{ digitaloceantoken }}"
+    register: attachVolumesResponse
+    loop: "{{ attachVolumeRequests }}"
+    tags:
+      - attachVolumes
+
+
+### DELETE VOLUMES
+
+  - include_vars: fromtemplate/listVolumes.yml
+    tags:
+      - deleteVolumes
+      - deleteAll      
+
+  - name: deleteVolumes
+    uri:
+      url: https://api.digitalocean.com/v2/volumes/{{ item.id }}
+      method: DELETE
+      status_code: 204
+      headers:
+        Content-Type: application/json
+        Authorization: "Bearer {{ digitaloceantoken }}"
+    loop: "{{ listVolumes }}"
+    tags:
+      - deleteVolumes
+      - deleteAll
+
+### INVENTORY update
+
+  - include_vars: fromtemplate/listDroplets.yml
+    tags:
+      - update_inventory
+
+  - name: generateInventory
+    template:
+      src: inventoryTemplate.j2
+      dest: inventory/hosts
+    tags:
+      - update_inventory
+
+
+### GENERATE credentials, effect is a file fromtemplate/users_passwords.yml containing usernames, passwords and hashes which needs to be encrypted and copied to 
+### provisioning\roles\droplets_api\vars\credentials.yml in another tags it is loaded as variable list named crdentials
+
+  - stat: path=fromtemplate/listDroplets.yml
+    register: listDroplets
+    tags:
+      - users_passwords_generate
+  
+  - debug: msg="Needs list of droplets."
+    when: listDroplets.exists == False
+    tags:
+      - users_passwords_generate
+  
+  - include_vars: fromtemplate/listDroplets.yml
+    tags:
+      - users_passwords_generate      
+
+  - name: generateUsersWithCredentials
+    template:
+      src: users_passwords.j2
+      dest: fromtemplate/users_passwords.yml
+    when: users_passwords.stat.exists == False
+    tags:
+      - users_passwords_generate
+
+
+
+### ZOOKEEPER docker-compose
+
+  - include_vars: fromtemplate/listDroplets.yml
+    tags:
+      - zookeeper_docker_compose
+
+  - name: zookeeper_docker_compose
+    template:
+      src: zookeeper_docker_template.j2
+      dest: fromtemplate/docker-compose{{item.myid}}.yml
+    when: "'zoo' in item.name"
+    loop: "{{ listDroplets }}"
+    tags:
+      - zookeeper_docker_compose
+
+
+### ZOOKEEPER copy docker-compose
+
+  - include_vars: fromtemplate/zookeeper_docker_compose.yml
+    tags:
+      - copy_zookeeper_docker_compose
+
+  - name: copy_zookeeper_docker_compose
+    copy: content="{{ zookeeper_docker_compose[0] | string }}" dest=~/test.yml
+    tags:
+      - copy_zookeeper_docker_compose
+
+  - name: display multiple file contents
+    debug: var=item
+    with_file:
+      - "fromtemplate/zookeeper_docker_compose.yml"
+    tags:
+      - copy_zookeeper_docker_compose1
+
+### HOST VARIABLES
+
+  - include_vars: fromtemplate/listDroplets.yml
+    tags:
+      - host_variables
+
+  - name: host_variables
+    template:
+      src: host_variables.j2
+      dest: host_vars/{{ item.ip }}
+    loop: "{{ listDroplets }}"
+    tags:
+      - host_variables
