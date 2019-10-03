@@ -3,15 +3,16 @@ version: '3.6'
 
 services:
 
-  kafka1:
+  kafka{{item.myid}}:
     image: confluentinc/cp-kafka:5.3.0
+    container_name: kafka{{item.myid}}
     hostname: kafka{{item.myid}}
     ports:
       - "9092:9092"
     environment:
-      KAFKA_ADVERTISED_LISTENERS: LISTENER_DOCKER_INTERNAL://kafka{{item.myid}}:19092,LISTENER_DOCKER_EXTERNAL://{% for d in listDroplets %}{% if 'zoo' in d.name and item.myid == d.myid%}{{item.ip}}{% endif %}{% endfor %}:9092
-      KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: LISTENER_DOCKER_INTERNAL:PLAINTEXT,LISTENER_DOCKER_EXTERNAL:PLAINTEXT
-      KAFKA_INTER_BROKER_LISTENER_NAME: LISTENER_DOCKER_INTERNAL
+      KAFKA_ADVERTISED_LISTENERS: {% for d in listDroplets %}{% if 'zoo' in d.name and item.myid == d.myid%}LISTENER_DOCKER_EXTERNAL://{{item.ip}}{% endif %}{% endfor %}:9092
+      KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: LISTENER_DOCKER_EXTERNAL:PLAINTEXT
+      KAFKA_INTER_BROKER_LISTENER_NAME: LISTENER_DOCKER_EXTERNAL
       KAFKA_ZOOKEEPER_CONNECT: "{% for d in listDroplets %}{% if 'zoo' in d.name %}{{d.ip}}:2181{%if not loop.last %},{% endif %}{% endif %}{% endfor %}"
       KAFKA_BROKER_ID: {{ item.myid }}
       KAFKA_LOG4J_LOGGERS: "kafka.controller=INFO,kafka.producer.async.DefaultEventHandler=INFO,state.change.logger=INFO"

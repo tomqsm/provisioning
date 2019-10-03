@@ -12,9 +12,6 @@
     state: latest
   become: yes
 
-- pause:
-    minutes: 1
-
 - name: Pip install docker-compose
   pip:
     name:
