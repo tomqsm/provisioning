@@ -14,3 +14,7 @@ Perform the following securing operations on created droplets: setup new user wi
 
 ## droplets_user playbook
 Install packages required by Ansible to controll docker-compose, create docker-compose files, upload to droplets and start docker-compose.
+
+## name_api playbook
+Update DNS records. 
+`ansible-playbook name_api.yml --vault-password-file pass`
