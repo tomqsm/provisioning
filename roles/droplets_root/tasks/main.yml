@@ -19,7 +19,7 @@
   authorized_key:
     user: '{{ user }}'
     state: present
-    key: "{{ lookup('file', ansible_ssh_private_key_file) }}" # from group_vars
+    key: "{{ lookup('file', public_key_file) }}" # from group_vars
 
 - name: set ssh permitRootLoginNo
   replace:

@@ -1,0 +1,6 @@
+{% for record in list_dns_response.json.records %}
+{% if record.host == item.name %}
+{{ item.name }}
+ - { id: "{{ record.id }}" }
+{% endif %}
+{% endfor %}

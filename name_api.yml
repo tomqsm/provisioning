@@ -1,0 +1,8 @@
+- hosts: local
+  gather_facts: False
+  
+  vars_files:
+    - "fromtemplate/listDroplets.yml"
+
+  roles:
+    - role: name_api

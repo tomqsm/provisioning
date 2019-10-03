@@ -1,0 +1,16 @@
+update_dns_request:
+{% for droplet in listDroplets %}
+{% for record in list_dns_response.json.records %}
+{% if record.host == droplet.name %}
+ - {
+    "id": {{record.id}},
+    "domainName": "{{record.domainName}}",
+    "host": "{{record.host}}",
+    "fqdn": "{{record.fqdn}}",
+    "type": "{{record.type}}",
+    "answer": "{{droplet.ip}}",
+    "ttl": 300
+}
+{% endif %}
+{% endfor %}
+{% endfor %}

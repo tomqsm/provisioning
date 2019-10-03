@@ -1,0 +1,62 @@
+#nametoken, api_url
+- name: list_dns
+  uri:
+    url: "{{ api_url }}/v4/domains/ojejek.com/records"
+    user: "{{username}}"
+    password: "{{nametoken}}"
+    force_basic_auth: yes
+    method: GET
+    status_code: 200
+    return_content: yes
+    body_format: json
+    headers:
+      Content-Type: application/json
+  register: list_dns_response
+
+# 'records': [
+#     {
+#       u
+#       'domainName': u
+#       'ojejek.com',
+#       u
+#       'fqdn': u
+#       'zoo1.ojejek.com.',
+#       u
+#       'host': u
+#       'zoo1',
+#       u
+#       'ttl': 300,
+#       u
+#       'answer': u
+#       '157.245.71.89',
+#       u
+#       'type': u
+#       'A',
+#       u
+#       'id': 1293187573
+#     }]
+
+- debug: msg="list_dns_response {{list_dns_response.json }}"
+
+- name: generate update_dns_request.yml
+  template:
+    src: update_dns_request.j2
+    dest: fromtemplate/update_dns_request.yml
+
+#update_dns_request
+- include_vars: fromtemplate/update_dns_request.yml
+
+- name: update_dns
+  uri:
+    url: "{{ api_url }}/v4/domains/ojejek.com/records/{{ item.id }}"
+    user: "{{ username }}"
+    password: "{{ nametoken }}"
+    force_basic_auth: yes
+    method: PUT
+    body: "{{ item }}"
+    status_code: 200
+    return_content: yes
+    body_format: json
+    headers:
+      Content-Type: application/json
+  loop: "{{ update_dns_request }}"
