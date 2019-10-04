@@ -28,6 +28,8 @@
   when: "ansible_default_ipv4.address == item.ip and (item.tags[0] == 'zoo')"
   loop: "{{ listDroplets }}"
 
+
+
 - name: kafka_docker_compose
   template:
     src: kafka_docker_template.j2

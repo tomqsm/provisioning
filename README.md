@@ -20,3 +20,9 @@ Install packages required by Ansible to controll docker-compose, create docker-c
 ## name_api playbook
 Update DNS records. 
 `ansible-playbook name_api.yml --vault-password-file pass`
+
+## kafka CLI notes
+`root@kafka:/# kafka-topics --list --zookeeper zookeeper:2181`
+`root@kafka:/# kafka-topics --create --topic c3-test --partitions 1 --replication-factor 1 --if-not-exists --zookeeper zookeeper:2181`
+`root@kafka:/# kafka-topics --describe --topic c3-test --zookeeper zookeeper:2181`
+`kafka-console-producer --topic test1 --broker-list kafka1.ojejek.com:9092`
