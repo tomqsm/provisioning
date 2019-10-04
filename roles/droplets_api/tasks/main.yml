@@ -370,6 +370,11 @@
 
 ### HOST VARIABLES
 
+- name: Clean artifact path
+  file:
+    state: absent
+    path: "host_vars/"
+
   - include_vars: fromtemplate/listDroplets.yml
     tags:
       - host_variables

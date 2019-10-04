@@ -12,6 +12,8 @@ With DigitalOcean REST API setup 'droplets'
 ## droplets_root playbook
 Perform the following securing operations on created droplets: setup new user with password, enable user's ssh connectivity, forbid root sccees and password access, reload ssh.
 
+It is convenient to start ssh-agent and add ssh key required by digital ocean e.g. `eval $(ssh-agent -s)`, `ssh-add /path/to/key` 
+
 ## droplets_user playbook
 Install packages required by Ansible to controll docker-compose, create docker-compose files, upload to droplets and start docker-compose.
 
