@@ -28,7 +28,12 @@
   when: "ansible_default_ipv4.address == item.ip and (item.tags[0] == 'zoo')"
   loop: "{{ listDroplets }}"
 
-
+- name: Docker compose down
+  docker_compose:
+    project_src: "~"
+    state: absent
+  when: "ansible_default_ipv4.address == item.ip and (item.tags[0] == 'kafka')"
+  loop: "{{ listDroplets }}"    
 
 - name: kafka_docker_compose
   template:
@@ -36,13 +41,6 @@
     dest: "docker-compose.yml"
   when: "ansible_default_ipv4.address == item.ip and (item.tags[0] == 'kafka')"
   loop: "{{ listDroplets }}"
-
-# - name: Docker compose down
-#   docker_compose:
-#     project_src: "~"
-#     state: absent
-#   tags:
-#     - down  
 
 - name: Docker compose up
   docker_compose:

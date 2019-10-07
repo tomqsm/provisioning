@@ -370,10 +370,19 @@
 
 ### HOST VARIABLES
 
-- name: Clean artifact path
-  file:
-    state: absent
-    path: "host_vars/"
+  - name: Remove host_vars
+    file:
+      state: absent
+      path: "host_vars/"
+    tags:
+      - host_variables 
+
+  - name: Create host_vars
+    file:
+      state: directory
+      path: "host_vars/"
+    tags:
+      - host_variables  
 
   - include_vars: fromtemplate/listDroplets.yml
     tags:

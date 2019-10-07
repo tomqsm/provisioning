@@ -1,9 +1,10 @@
 {% set dockerHost = 'kafka'~item.myid %}
 {% set externalDomain = dockerHost+'.ojejek.com' %}
 {% set zoos = [] %}
+{% set kafkas = [] %}
 {%- for d in listDroplets -%}
   {%- if 'zoo' in d.name -%}
-    {% set dummy = zoos.append(d.ip+':2181') %}
+    {% set dummyZoos = zoos.append(d.ip+':2181') %}
   {%- endif -%}
 {%- endfor -%}
 version: '3.6'
@@ -11,16 +12,15 @@ version: '3.6'
 services:
 
   {{dockerHost}}:
-    image: confluentinc/cp-kafka:5.3.0
-    container_name: {{ dockerHost }}
-    hostname: {{ dockerHost }}
+    image: confluentinc/cp-kafka:5.3.1
+    hostname: {{ externalDomain }}
     ports:
       - "9092:9092"
+      - "19092:19092"
     environment:
-      KAFKA_LISTENERS: EXTERNAL://0.0.0.0:9092
-      KAFKA_ADVERTISED_LISTENERS: EXTERNAL://{{ externalDomain }}:9092
-      KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: EXTERNAL:PLAINTEXT
-      KAFKA_INTER_BROKER_LISTENER_NAME: EXTERNAL
+      KAFKA_ADVERTISED_LISTENERS: LISTENER_DOCKER_INTERNAL://{{ dockerHost }}:19092,LISTENER_DOCKER_EXTERNAL://{{ externalDomain }}:9092
+      KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: LISTENER_DOCKER_INTERNAL:PLAINTEXT,LISTENER_DOCKER_EXTERNAL:PLAINTEXT
+      KAFKA_INTER_BROKER_LISTENER_NAME: LISTENER_DOCKER_INTERNAL
       KAFKA_ZOOKEEPER_CONNECT: "{{ zoos | join(',') }}"
       KAFKA_BROKER_ID: {{ item.myid }}
       KAFKA_LOG4J_LOGGERS: "kafka.controller=INFO,kafka.producer.async.DefaultEventHandler=INFO,state.change.logger=INFO"
