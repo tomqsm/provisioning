@@ -1,0 +1,57 @@
+- name: register
+  uri:
+    url: "http://localhost:8090/register"
+    body: "{\"username\":\"umba\", \"password\":\"makumba\"}"
+    # body: "{\"username\":\"umba\", \"password\":\"{{ 'makumba' | password_hash('sha256', '1') }}\"}"
+    method: POST
+    status_code: 200
+    return_content: yes
+    body_format: json
+    headers:
+      Content-Type: application/json
+  register: register_response
+
+- debug: msg="register_response {{ register_response }}"  
+
+- name: authenticate
+  uri:
+    url: "http://localhost:8090/authenticate"
+    body: "{\"username\":\"umba\", \"password\":\"makumba\"}"
+    # body: "{\"username\":\"umba\", \"password\":\"{{ 'makumba' | password_hash('sha256', '1') }}\"}"
+    method: POST
+    status_code: 200
+    return_content: yes
+    body_format: json
+    headers:
+      Content-Type: application/json
+  register: authenticate_response
+
+- debug: msg="token {{ authenticate_response.json.jwttoken }}"
+
+- name: get_service
+  uri:
+    url: "http://localhost:8090/hello"
+    method: GET
+    status_code: 200
+    return_content: yes
+    body_format: json
+    headers:
+      Content-Type: application/json
+      Authorization: "Bearer {{ authenticate_response.json.jwttoken }}"
+  register: hello_response
+
+- debug: msg="hello_response {{ hello_response }}"
+
+- name: get_super_service
+  uri:
+    url: "http://localhost:8090/superhello"
+    method: GET
+    status_code: 403
+    return_content: yes
+    body_format: json
+    headers:
+      Content-Type: application/json
+      Authorization: "Bearer {{ authenticate_response.json.jwttoken }}"
+  register: superhello_response
+
+- debug: msg="superhello_response {{ superhello_response }}"
