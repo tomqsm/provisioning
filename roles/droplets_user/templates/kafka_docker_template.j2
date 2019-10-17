@@ -28,3 +28,28 @@ services:
       KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 1
     volumes:
       - /mnt/kafkadata:/var/lib/kafka/data
+
+  kafka-schema-registry:
+    restart: unless-stopped
+    image: confluentinc/cp-schema-registry:5.3.1
+    hostname: kafka-schema-registry
+    ports:
+      - "8081:8081"
+    environment:
+      SCHEMA_REGISTRY_KAFKASTORE_BOOTSTRAP_SERVERS: PLAINTEXT://{{ dockerHost }}:19092
+      SCHEMA_REGISTRY_HOST_NAME: kafka-schema-registry
+      SCHEMA_REGISTRY_LISTENERS: http://0.0.0.0:8081
+    depends_on:
+      - {{ dockerHost }}
+
+  schema-registry-ui:
+    restart: unless-stopped
+    image: landoop/schema-registry-ui:0.9.4
+    hostname: kafka-schema-registry-ui
+    ports:
+      - "8001:8000"
+    environment:
+      SCHEMAREGISTRY_URL: http://kafka-schema-registry:8081/
+      PROXY: "true"
+    depends_on:
+      - kafka-schema-registry    

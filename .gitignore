@@ -2,3 +2,4 @@
 host_vars/*
 fromtemplate/*
 pass
+standalone/outcome/

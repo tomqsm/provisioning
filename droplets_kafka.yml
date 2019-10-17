@@ -1,0 +1,9 @@
+- hosts: droplets
+  gather_facts: True
+  remote_user: "{{ user }}"
+
+  vars_files:
+    - "fromtemplate/listDroplets.yml"
+  
+  roles:
+    - role: droplets_kafka

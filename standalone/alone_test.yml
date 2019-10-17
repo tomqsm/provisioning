@@ -1,0 +1,57 @@
+---
+#
+# file: template_test.yml
+# author: xbalaji@gmail.com
+#
+# description: playbook to demonstrate passing variables to template files
+#
+# this playbook will create 3 files from a single template, with different
+# variables passed for each of the invocation
+#
+# usage:
+# ansible-playbook -i "localhost," alone_test.yml
+
+- name: template variables testing
+  hosts: all
+  gather_facts: false
+
+  vars:
+    ansible_connection: local
+    dest_dir: "outcome"
+    test_files:
+      - file_01.txt
+      - file_02.txt
+      - file_03.txt
+    test_vars:
+      file_01:
+        name: file_01.txt
+        ip: "{{ lookup('dig', 'kafka1.ojejek.com.')}}"
+        port: 8001
+      file_02:
+        name: file_02.txt
+        ip: 10.0.0.2
+        port: 8002
+      file_03:
+        name: file_03.txt
+        ip: 10.0.0.3
+        port: 8003
+
+  tasks:
+    - name: copy the files
+      template:
+        src: test_file.j2
+        dest: "{{ dest_dir }}/{{ item }}"
+      with_items:
+        - "{{ test_files }}"
+
+    - name: Check all port numbers are accessible from current host
+      wait_for:
+        host: kafka1.ojejek.com
+        port: "{{ item }}"
+        state: started         # Port should be open
+        delay: 0               # No wait before first check (sec)
+        timeout: 3             # Stop checking after timeout (sec)
+      ignore_errors: yes
+      with_items:
+        - 9092
+        - 19092

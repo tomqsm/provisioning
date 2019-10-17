@@ -1,0 +1,49 @@
+- name: zookeeper_docker_compose
+  template:
+    src: zookeeper_docker_template.j2
+    dest: "docker-compose.yml"
+  when: "ansible_default_ipv4.address == item.ip and (item.tags[0] == 'zoo')"
+  loop: "{{ listDroplets }}"
+
+- name: kafka_docker_compose down
+  docker_compose:
+    project_src: "~"
+    state: absent
+  when: "ansible_default_ipv4.address == item.ip and (item.tags[0] == 'kafka')"
+  loop: "{{ listDroplets }}"
+  tags:
+    - kafka_down
+
+- name: update kafka_docker_compose
+  template:
+    src: kafka_docker_template.j2
+    dest: "docker-compose.yml"
+  when: "ansible_default_ipv4.address == item.ip and (item.tags[0] == 'kafka')"
+  loop: "{{ listDroplets }}"
+  tags:
+    - update
+
+- name: kafka_docker_compose up
+  docker_compose:
+    project_src: "~"
+    state: present
+  when: "ansible_default_ipv4.address == item.ip and (item.tags[0] == 'kafka')"
+  loop: "{{ listDroplets }}"
+  tags:
+    - kafka_up
+
+- name: check_kafka_ports
+  wait_for:
+    host: "{{ ansible_default_ipv4.address }}"
+    port: "{{ item }}"
+    state: started         # Port should be open
+    delay: 0               # No wait before first check (sec)
+    timeout: 3             # Stop checking after timeout (sec)
+  ignore_errors: yes
+  with_items:
+    - 9092
+    - 19092
+  when: "'kafka' in (listDroplets | selectattr('ip', 'search', ansible_default_ipv4.address) | list | first).name"
+  tags:
+    - check_kafka_ports  
+

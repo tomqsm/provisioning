@@ -1,0 +1,68 @@
+{% set kafkaBrokerName = item.name %}
+{% set externalDomain = kafkaBrokerName+'.ojejek.com' %}
+{% set zoos = [] %}
+{% set kafkas = [] %}
+{%- for d in listDroplets -%}
+  {%- if 'zoo' in d.name -%}
+    {% set dummyZoos = zoos.append(d.ip+':2181') %}
+  {%- endif -%}
+{%- endfor -%}
+version: '3.6'
+
+services:
+
+  {{kafkaBrokerName}}:
+    restart: unless-stopped  
+    image: confluentinc/cp-kafka:5.3.1
+    hostname: {{ kafkaBrokerName }}
+    ports:
+      - "9092:9092"
+      - "19092:19092"
+    environment:
+      KAFKA_ADVERTISED_LISTENERS: PLAINTEXT://{{ kafkaBrokerName }}:19092,LISTENER_DOCKER_EXTERNAL://{{ externalDomain }}:9092
+      KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: PLAINTEXT:PLAINTEXT,LISTENER_DOCKER_EXTERNAL:PLAINTEXT
+      KAFKA_INTER_BROKER_LISTENER_NAME: PLAINTEXT
+      KAFKA_ZOOKEEPER_CONNECT: "{{ zoos | join(',') }}"
+      KAFKA_BROKER_ID: {{ item.myid }}
+      KAFKA_LOG4J_LOGGERS: "kafka.controller=INFO,kafka.producer.async.DefaultEventHandler=INFO,state.change.logger=INFO"
+      KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 1
+    volumes:
+      - /mnt/kafkadata:/var/lib/kafka/data
+    extra_hosts:
+      kafka1: 165.22.203.178
+      kafka2: 165.22.81.67  
+      kafka3: 134.209.191.13  
+
+### see: https://github.com/simplesteph/kafka-stack-docker-compose/blob/master/full-stack.yml
+{% if 'kafka1' == item.name %}
+  kafka-schema-registry:
+    image: confluentinc/cp-schema-registry:5.3.1
+    restart: unless-stopped
+    hostname: kafka-schema-registry
+    ports:
+      - "8081:8081"
+    environment:
+      SCHEMA_REGISTRY_HOST_NAME: {{ externalDomain }}
+      SCHEMA_REGISTRY_KAFKASTORE_BOOTSTRAP_SERVERS: "PLAINTEXT://kafka1:19092,PLAINTEXT://kafka2:19092,PLAINTEXT://kafka3:19092"
+      SCHEMA_REGISTRY_KAFKASTORE_CONNECTION_URL: "zoo1.ojejek.com:2181"
+      SCHEMA_REGISTRY_LISTENERS: "http://{{ kafkaBrokerName }}:8081"
+    depends_on:
+      - {{ kafkaBrokerName }}
+    extra_hosts:
+      kafka1: 165.22.203.178
+      kafka2: 165.22.81.67  
+      kafka3: 134.209.191.13      
+
+  schema-registry-ui:
+    image: landoop/schema-registry-ui:latest
+    restart: unless-stopped
+    hostname: kafka-schema-registry-ui
+    ports:
+      - "8000:8000"
+    environment:
+      SCHEMAREGISTRY_URL: http://{{ externalDomain }}:8081
+      PROXY: "false"
+    depends_on:
+      - kafka-schema-registry
+
+{% endif %}      

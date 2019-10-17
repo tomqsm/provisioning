@@ -1,0 +1,9 @@
+# {{ ansible_managed }} created by xbalaji@gmail.com
+
+{% set dkey  = (item | splitext)[0]  %}
+{% set fname = test_vars[dkey].name  %}
+{% set fip   = test_vars[dkey].ip    %}
+{% set fport = test_vars[dkey].port  %}
+filename: {{ fname }}
+ip address: {{ fip }}
+port: {{ fport }}
