@@ -1,6 +1,0 @@
-- name: Set timezone to Europe/Warsaw
-  timezone:
-    name: Europe/Warsaw
-  become: yes
-  tags:
-    - priming

@@ -1,4 +1,6 @@
-# python_version: 3.5
-vars: 
- - ip: "{{ hostvars['hostname'][ansible_default_ipv4][address] }}"
- - hostname: "{{ hostvars['hostname'][ansible_hostname] }}"
+
+memfree_mb: "{{ hostvars[ansible_default_ipv4.address]['ansible_facts']['memfree_mb'] }}"
+memfree_mb_total: "{{ hostvars[ansible_default_ipv4.address]['ansible_facts']['memory_mb']['real']['total'] }}"
+fqdn: "{{ hostvars[ansible_default_ipv4.address]['ansible_facts']['fqdn'] }}"
+processor: "{{ hostvars[ansible_default_ipv4.address]['ansible_facts']['processor'] }}"
+datetime: "{{ hostvars[ansible_default_ipv4.address]['ansible_facts']['date_time']['iso8601_basic_short'] }}"

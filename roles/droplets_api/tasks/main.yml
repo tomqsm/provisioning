@@ -394,4 +394,4 @@
       dest: host_vars/{{ item.ip }}
     loop: "{{ listDroplets }}"
     tags:
-      - host_variables
+      - host_variables    

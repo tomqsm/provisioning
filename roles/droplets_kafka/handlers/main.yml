@@ -1,6 +1,0 @@
-# Acknowledgement to Ryan Eschinger at http://ryaneschinger.com/blog/securing-a-server-with-ansible/
-# refer to encrypted variables in vault_data file in droplets/var
-- name: Restart ssh for root and password restriction if permitRootLoginChanged or PasswordAuthentication changed
-  service: name=ssh state=restarted
-  when: permitRootLoginChanged.changed == True or passwordAuthenticationChanged.change == True
-  become: yes
