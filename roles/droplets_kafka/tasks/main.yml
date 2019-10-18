@@ -1,9 +1,10 @@
+
 - name: kafka_docker_compose down
   docker_compose:
     project_src: "~"
     state: absent
   when: "ansible_default_ipv4.address == item.ip"
-  loop: "{{ listDroplets | selectattr('name', 'search', 'kafka') | list  }}"
+  loop: "{{ listDroplets | selectattr('name', 'search', kafka_matcher) | list  }}"
   tags:
     - kafka_down
 
@@ -12,7 +13,7 @@
     src: kafka_docker_template.j2
     dest: "docker-compose.yml"
   when: "ansible_default_ipv4.address == item.ip"
-  loop: "{{ listDroplets | selectattr('name', 'search', 'kafka') | list  }}"
+  loop: "{{ listDroplets | selectattr('name', 'search', kafka_matcher) | list  }}"
   tags:
     - update
 
@@ -21,7 +22,7 @@
     project_src: "~"
     state: present
   when: "ansible_default_ipv4.address == item.ip"
-  loop: "{{ listDroplets | selectattr('name', 'search', 'kafka') | list  }}"
+  loop: "{{ listDroplets | selectattr('name', 'search', kafka_matcher) | list  }}"
   tags:
     - kafka_up
 
@@ -38,6 +39,8 @@
     - 19092
   when: "'kafka' in (listDroplets | selectattr('ip', 'search', ansible_default_ipv4.address) | list | first).name"
   tags:
-    - check_kafka_ports  
+    - report 
 
 - debug: msg="{{ fqdn }} free={{ memfree_mb }}MB, total={{ memfree_mb_total }}MB, processor->{{ processor }} time->{{ datetime }},  ansible{{ ansible_version.full }}"
+  tags:
+    - report

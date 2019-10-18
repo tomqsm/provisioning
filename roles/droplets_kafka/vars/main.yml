@@ -1,4 +1,4 @@
-
+kafka_matcher: "kafka1" #checks droplet's name and executes a play against matches
 memfree_mb: "{{ hostvars[ansible_default_ipv4.address]['ansible_facts']['memfree_mb'] }}"
 memfree_mb_total: "{{ hostvars[ansible_default_ipv4.address]['ansible_facts']['memory_mb']['real']['total'] }}"
 fqdn: "{{ hostvars[ansible_default_ipv4.address]['ansible_facts']['fqdn'] }}"
